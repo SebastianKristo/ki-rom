@@ -11,6 +11,11 @@ from homeassistant.core import Event, HomeAssistant, callback
 from homeassistant.helpers import area_registry as ar
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+
+try:  # etasjer finnes fra HA 2024.4
+    from homeassistant.helpers import floor_registry as fr
+except ImportError:  # pragma: no cover
+    fr = None
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.event import async_track_state_change_event
@@ -46,6 +51,7 @@ class KiRomHub:
         self.entry = entry
         self.areas: dict[str, str] = {}  # area_id -> navn
         self.area_icons: dict[str, str | None] = {}
+        self.area_floors: dict[str, dict[str, Any] | None] = {}
         self.members: dict[str, dict[str, list[str]]] = {}  # area_id -> domain -> [entity_id]
         self._entity_area: dict[str, str] = {}
         self._device_of: dict[str, str | None] = {}  # entity_id -> device_id
@@ -117,13 +123,28 @@ class KiRomHub:
         include_category = bool(self.options.get(CONF_INCLUDE_CATEGORY, False))
         include_groups = bool(self.options.get(CONF_INCLUDE_GROUPS, False))
 
+        floors: dict[str, dict[str, Any]] = {}
+        if fr is not None:
+            try:
+                for floor in fr.async_get(self.hass).async_list_floors():
+                    floors[floor.floor_id] = {
+                        "id": floor.floor_id,
+                        "navn": floor.name,
+                        "niva": floor.level,
+                        "ikon": floor.icon,
+                    }
+            except Exception:  # noqa: BLE001
+                floors = {}
+
         areas: dict[str, str] = {}
         icons: dict[str, str | None] = {}
+        area_floors: dict[str, dict[str, Any] | None] = {}
         for area in area_reg.async_list_areas():
             if wanted and area.id not in wanted:
                 continue
             areas[area.id] = area.name
             icons[area.id] = area.icon
+            area_floors[area.id] = floors.get(getattr(area, "floor_id", None))
 
         members: dict[str, dict[str, list[str]]] = {
             aid: defaultdict(list) for aid in areas
@@ -170,6 +191,7 @@ class KiRomHub:
 
         self.areas = dict(sorted(areas.items(), key=lambda kv: kv[1].lower()))
         self.area_icons = icons
+        self.area_floors = area_floors
         self.members = members
         self._device_of = device_of
         self._class_of = class_of
@@ -332,6 +354,9 @@ class KiRomHub:
             "integrasjon": DOMAIN,
             "area_id": aid,
             "ikon": self.area_icons.get(aid),
+            "etasje": (self.area_floors.get(aid) or {}).get("navn"),
+            "etasje_id": (self.area_floors.get(aid) or {}).get("id"),
+            "etasje_niva": (self.area_floors.get(aid) or {}).get("niva"),
             "lys": lys,
             "media": media,
             "brytere": brytere,
