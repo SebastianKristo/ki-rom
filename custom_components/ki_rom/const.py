@@ -9,7 +9,21 @@ CONF_INCLUDE_CATEGORY = "include_category"
 CONF_INCLUDE_GROUPS = "include_groups"
 
 # Domener som telles per rom
-TRACKED_DOMAINS = ("light", "media_player", "switch", "binary_sensor", "sensor")
+TRACKED_DOMAINS = (
+    "light",
+    "media_player",
+    "switch",
+    "binary_sensor",
+    "sensor",
+    "climate",
+    "cover",
+    "fan",
+    "script",
+    "scene",
+)
+
+# sensor-device_classes som tas med
+SENSOR_CLASSES = {"power", "temperature", "humidity", "illuminance"}
 
 # binary_sensor-device_classes som regnes som "aktiv/stille"-sensorer
 ACTIVE_BINARY_CLASSES = {
@@ -31,8 +45,9 @@ KIND_MEDIA = "media"
 KIND_BRYTERE = "brytere"
 KIND_SENSORER = "sensorer"
 KIND_EFFEKT = "effekt"
+KIND_OVERSIKT = "oversikt"
 
-KINDS = (KIND_LYS, KIND_MEDIA, KIND_BRYTERE, KIND_SENSORER, KIND_EFFEKT)
+KINDS = (KIND_LYS, KIND_MEDIA, KIND_BRYTERE, KIND_SENSORER, KIND_EFFEKT, KIND_OVERSIKT)
 
 KIND_META = {
     KIND_LYS: {
@@ -75,6 +90,11 @@ KIND_META = {
         "navn": "Effekt",
         "icon": "mdi:flash",
         "domain": "sensor",
+    },
+    KIND_OVERSIKT: {
+        "navn": "Oversikt",
+        "icon": "mdi:floor-plan",
+        "domain": None,
     },
 }
 

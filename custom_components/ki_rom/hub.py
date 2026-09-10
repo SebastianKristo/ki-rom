@@ -24,6 +24,8 @@ from .const import (
     DOMAIN,
     KIND_EFFEKT,
     KIND_META,
+    KIND_OVERSIKT,
+    SENSOR_CLASSES,
     TOTALT_ID,
     TRACKED_DOMAINS,
 )
@@ -43,8 +45,11 @@ class KiRomHub:
         self.hass = hass
         self.entry = entry
         self.areas: dict[str, str] = {}  # area_id -> navn
+        self.area_icons: dict[str, str | None] = {}
         self.members: dict[str, dict[str, list[str]]] = {}  # area_id -> domain -> [entity_id]
         self._entity_area: dict[str, str] = {}
+        self._device_of: dict[str, str | None] = {}  # entity_id -> device_id
+        self._class_of: dict[str, str | None] = {}  # entity_id -> device_class
         self._unsub_state = None
         self._unsub_registry: list = []
         self._known_area_ids: set[str] | None = None
@@ -93,7 +98,6 @@ class KiRomHub:
         self._build()
         new_ids = set(self.areas)
         if self._known_area_ids is not None and new_ids != self._known_area_ids:
-            # Rom lagt til/fjernet -> last integrasjonen på nytt så sensorer opprettes/fjernes
             _LOGGER.info("KI Rom: rom endret, laster på nytt")
             self._known_area_ids = new_ids
             self.hass.config_entries.async_schedule_reload(self.entry.entry_id)
@@ -114,14 +118,18 @@ class KiRomHub:
         include_groups = bool(self.options.get(CONF_INCLUDE_GROUPS, False))
 
         areas: dict[str, str] = {}
+        icons: dict[str, str | None] = {}
         for area in area_reg.async_list_areas():
             if wanted and area.id not in wanted:
                 continue
             areas[area.id] = area.name
+            icons[area.id] = area.icon
 
         members: dict[str, dict[str, list[str]]] = {
             aid: defaultdict(list) for aid in areas
         }
+        device_of: dict[str, str | None] = {}
+        class_of: dict[str, str | None] = {}
 
         for entry in ent_reg.entities.values():
             if entry.platform == DOMAIN:
@@ -134,7 +142,8 @@ class KiRomHub:
                 continue
             if entry.entity_category is not None and not include_category:
                 continue
-            if entry.platform == "group" and not include_groups:
+            if entry.platform == "group" and not include_groups and entry.domain != "cover":
+                # cover-grupper beholdes: de brukes som "master" for gardiner
                 continue
 
             area_id = entry.area_id
@@ -146,19 +155,24 @@ class KiRomHub:
                 continue
 
             device_class = entry.device_class or entry.original_device_class
-            if entry.domain == "sensor" and device_class != "power":
+            if entry.domain == "sensor" and device_class not in SENSOR_CLASSES:
                 continue
             if entry.domain == "binary_sensor" and device_class not in ACTIVE_BINARY_CLASSES:
                 continue
 
             members[area_id][entry.domain].append(entry.entity_id)
+            device_of[entry.entity_id] = entry.device_id
+            class_of[entry.entity_id] = str(device_class) if device_class else None
 
         for domains in members.values():
             for lst in domains.values():
                 lst.sort()
 
         self.areas = dict(sorted(areas.items(), key=lambda kv: kv[1].lower()))
+        self.area_icons = icons
         self.members = members
+        self._device_of = device_of
+        self._class_of = class_of
         self._entity_area = {
             eid: aid
             for aid, domains in members.items()
@@ -200,6 +214,13 @@ class KiRomHub:
             return sorted(out)
         return list(self.members.get(area_id, {}).get(domain, []))
 
+    def sensors_of_class(self, area_id: str | None, device_class: str) -> list[str]:
+        return [
+            e
+            for e in self.entity_ids(area_id, "sensor")
+            if self._class_of.get(e) == device_class
+        ]
+
     def _navn(self, entity_id: str) -> str:
         state = self.hass.states.get(entity_id)
         if state is None:
@@ -208,11 +229,13 @@ class KiRomHub:
 
     def compute(self, area_id: str | None, kind: str) -> dict[str, Any]:
         """Beregn verdi + attributter for en sensortype i et rom."""
+        if kind == KIND_OVERSIKT:
+            return self._compute_oversikt(area_id)
+        if kind == KIND_EFFEKT:
+            return self._compute_effekt(self.sensors_of_class(area_id, "power"))
+
         meta = KIND_META[kind]
         ids = self.entity_ids(area_id, meta["domain"])
-
-        if kind == KIND_EFFEKT:
-            return self._compute_effekt(ids)
 
         aktiv: list[str] = []
         inaktiv: list[str] = []
@@ -223,8 +246,6 @@ class KiRomHub:
                 utilgjengelig.append(eid)
             elif state.state in meta["aktiv_states"]:
                 aktiv.append(eid)
-            elif state.state in meta["inaktiv_states"]:
-                inaktiv.append(eid)
             else:
                 inaktiv.append(eid)
 
@@ -271,3 +292,68 @@ class KiRomHub:
                 "entiteter": ids,
             },
         }
+
+    def _linked_power(self, area_id: str | None, entity_id: str) -> str | None:
+        """Finn effektsensor på samme enhet som entiteten (bryter, klima, vifte)."""
+        dev = self._device_of.get(entity_id)
+        if not dev:
+            return None
+        for sensor in self.sensors_of_class(area_id, "power"):
+            if self._device_of.get(sensor) == dev:
+                return sensor
+        return None
+
+    def _compute_oversikt(self, area_id: str | None) -> dict[str, Any]:
+        """Alt kortet trenger for å auto-bygge en rom-popup."""
+        aid = area_id or TOTALT_ID
+        power_all = self.sensors_of_class(area_id, "power")
+
+        def with_power(ids: list[str]) -> list[dict[str, Any]]:
+            return [
+                {"entity": e, "effekt": self._linked_power(area_id, e)} for e in ids
+            ]
+
+        brytere = with_power(self.entity_ids(area_id, "switch"))
+        klima = with_power(self.entity_ids(area_id, "climate"))
+        vifter = with_power(self.entity_ids(area_id, "fan"))
+        brukt = {d["effekt"] for d in brytere + klima + vifter if d["effekt"]}
+
+        lys = self.entity_ids(area_id, "light")
+        media = self.entity_ids(area_id, "media_player")
+        gardiner = self.entity_ids(area_id, "cover")
+        sensorer = [
+            {"entity": e, "klasse": self._class_of.get(e)}
+            for e in self.entity_ids(area_id, "binary_sensor")
+        ]
+        skript = self.entity_ids(area_id, "script")
+        scener = self.entity_ids(area_id, "scene")
+
+        attrs: dict[str, Any] = {
+            "integrasjon": DOMAIN,
+            "area_id": aid,
+            "ikon": self.area_icons.get(aid),
+            "lys": lys,
+            "media": media,
+            "brytere": brytere,
+            "vifter": vifter,
+            "klima": klima,
+            "gardiner": gardiner,
+            "sensorer": sensorer,
+            "skript": skript,
+            "scener": scener,
+            "temperatur": self.sensors_of_class(area_id, "temperature"),
+            "fuktighet": self.sensors_of_class(area_id, "humidity"),
+            "lysniva": self.sensors_of_class(area_id, "illuminance"),
+            "effekt": power_all,
+            "effekt_andre": [e for e in power_all if e not in brukt],
+        }
+        total = (
+            len(lys)
+            + len(media)
+            + len(brytere)
+            + len(vifter)
+            + len(klima)
+            + len(gardiner)
+            + len(sensorer)
+        )
+        return {"value": total, "attrs": attrs}

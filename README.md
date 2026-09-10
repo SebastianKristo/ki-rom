@@ -14,6 +14,7 @@ For hvert rom (device = rommet, plassert i rommet automatisk) og for «Hele huse
 | `sensor.<rom>_brytere` | antall switch **på** | samme |
 | `sensor.<rom>_sensorer` | antall binary_sensor **aktiv** (motion/occupancy/presence/door/window/opening/vibration …) | samme, `tekst` = «1 aktiv - 5 stille» |
 | `sensor.<rom>_effekt` | sum W av alle power-sensorer i rommet | `tekst` («412 W»), `kilder` (W per entitet) |
+| `sensor.<rom>_oversikt` | antall entiteter i rommet | `lys`, `media`, `brytere` (+effektsensor), `vifter`, `klima` (+effektsensor), `gardiner`, `sensorer` (+klasse), `skript`, `scener`, `temperatur`, `fuktighet`, `lysniva`, `effekt`, `area_id`, `ikon` – brukes av `ki-rom-card` til å auto-bygge popupen |
 
 Totaler: `sensor.hele_huset_lys`, `sensor.hele_huset_effekt` osv.
 

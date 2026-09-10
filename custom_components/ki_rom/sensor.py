@@ -16,7 +16,16 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from .const import DOMAIN, KIND_EFFEKT, KIND_META, KINDS, NAVN, TOTALT_ID, TOTALT_NAVN
+from .const import (
+    DOMAIN,
+    KIND_EFFEKT,
+    KIND_META,
+    KIND_OVERSIKT,
+    KINDS,
+    NAVN,
+    TOTALT_ID,
+    TOTALT_NAVN,
+)
 from .hub import KiRomHub, signal
 
 
@@ -54,6 +63,8 @@ class KiRomSensor(SensorEntity):
             self._attr_native_unit_of_measurement = UnitOfPower.WATT
             self._attr_device_class = SensorDeviceClass.POWER
             self._attr_suggested_display_precision = 0
+        if kind == KIND_OVERSIKT:
+            self._attr_state_class = None
 
         device = DeviceInfo(
             identifiers={(DOMAIN, f"{hub.entry.entry_id}_{area_id}")},
