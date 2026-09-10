@@ -1,0 +1,96 @@
+# Erstatning for expander-headerne i #stue-popupen.
+# Bytt kun ut det høyre "teller"-kortet (grid-area: three) i hver title-card.
+# Samme mønster for kjokken, bad, gang, pult, soverom osv. – bare bytt sensor-navnet.
+
+# ---- Lys ----------------------------------------------------------------
+- type: custom:button-card
+  view_layout:
+    grid-area: three
+  entity: sensor.stue_lys
+  name: '[[[ return entity.attributes.tekst ]]]'
+  show_icon: false
+  tap_action:
+    action: none
+  styles:
+    card:
+      - background: none
+      - padding: 8px 0px
+      - overflow: visible
+      - --mdc-ripple-press-opacity: 0
+    name:
+      - color: var(--gray600)
+      - font-size: 14px
+      - font-weight: 500
+      - justify-self: end
+      - align-self: end
+
+# ---- Enheter (samlet effekt i rommet) -----------------------------------
+- type: custom:button-card
+  view_layout:
+    grid-area: three
+  entity: sensor.stue_effekt
+  name: '[[[ return entity.attributes.tekst ]]]'
+  show_icon: false
+  tap_action:
+    action: none
+  styles:
+    card:
+      - background: none
+      - padding: 8px 0px
+      - overflow: visible
+      - --mdc-ripple-press-opacity: 0
+    name:
+      - color: var(--gray600)
+      - font-size: 14px
+      - font-weight: 500
+      - justify-self: end
+      - align-self: end
+
+# ---- Media --------------------------------------------------------------
+- type: custom:button-card
+  view_layout:
+    grid-area: three
+  entity: sensor.stue_media
+  name: '[[[ return entity.attributes.tekst ]]]'
+  show_icon: false
+  tap_action:
+    action: none
+  styles:
+    card:
+      - background: none
+      - padding: 8px 0px
+      - overflow: visible
+      - --mdc-ripple-press-opacity: 0
+    name:
+      - color: var(--gray600)
+      - font-size: 14px
+      - font-weight: 500
+      - justify-self: end
+      - align-self: end
+
+# ---- Sensorer -----------------------------------------------------------
+- type: custom:button-card
+  view_layout:
+    grid-area: three
+  entity: sensor.stue_sensorer
+  name: '[[[ return entity.attributes.tekst ]]]'
+  show_icon: false
+  tap_action:
+    action: none
+  styles:
+    card:
+      - background: none
+      - padding: 8px 0px
+      - overflow: visible
+      - --mdc-ripple-press-opacity: 0
+    name:
+      - color: var(--gray600)
+      - font-size: 14px
+      - font-weight: 500
+      - justify-self: end
+      - align-self: end
+
+# ---- Bonus: hele huset i prose-kortet på forsiden ------------------------
+# Erstatt sensor.alle_lys_teller med sensor.hele_huset_lys, og
+# 'Klima'-headerne (oljefyr + panelovn W) kan bruke sensor.stue_effekt.kilder
+# eller en egen utvalgt sum om du vil skille varme fra stikkontakter.

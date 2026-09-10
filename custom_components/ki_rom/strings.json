@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "KI Rom",
+        "description": "Lager tellere per rom (lys, media, brytere, sensorer, effekt). Tomt romvalg = alle rom, automatisk.",
+        "data": {
+          "areas": "Rom (tomt = alle)",
+          "exclude": "Entiteter som skal ignoreres",
+          "include_category": "Ta med konfig-/diagnose-entiteter (f.eks. status-LED)",
+          "include_groups": "Ta med grupper (light.*-grupper o.l.)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "KI Rom er allerede satt opp. Bruk Innstillinger på integrasjonen."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "KI Rom",
+        "description": "Tomt romvalg = alle rom, automatisk.",
+        "data": {
+          "areas": "Rom (tomt = alle)",
+          "exclude": "Entiteter som skal ignoreres",
+          "include_category": "Ta med konfig-/diagnose-entiteter (f.eks. status-LED)",
+          "include_groups": "Ta med grupper (light.*-grupper o.l.)"
+        }
+      }
+    }
+  }
+}

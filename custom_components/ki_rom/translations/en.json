@@ -1,0 +1,33 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "KI Rom",
+        "description": "Creates per-area counters (lights, media, switches, sensors, power). Empty area selection = all areas, automatically.",
+        "data": {
+          "areas": "Areas (empty = all)",
+          "exclude": "Entities to ignore",
+          "include_category": "Include config/diagnostic entities (e.g. status LEDs)",
+          "include_groups": "Include groups (light groups etc.)"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "KI Rom is already set up. Use Configure on the integration."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "KI Rom",
+        "description": "Empty area selection = all areas, automatically.",
+        "data": {
+          "areas": "Areas (empty = all)",
+          "exclude": "Entities to ignore",
+          "include_category": "Include config/diagnostic entities (e.g. status LEDs)",
+          "include_groups": "Include groups (light groups etc.)"
+        }
+      }
+    }
+  }
+}
