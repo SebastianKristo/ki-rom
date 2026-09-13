@@ -1,8 +1,10 @@
 {
   "domain": "ki_rom",
   "name": "KI Rom",
-  "version": "1.2.0",
-  "codeowners": ["@SebastianKristo"],
+  "version": "2.0.0",
+  "codeowners": [
+    "@SebastianKristo"
+  ],
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/SebastianKristo/ki-rom",

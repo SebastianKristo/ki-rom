@@ -27,18 +27,22 @@ from .const import (
     TOTALT_NAVN,
 )
 from .hub import KiRomHub, signal
+from .jul_entiteter import Nedtelling, Tent
+from .lys_sensor import Oversikt as LysOversikt
 
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    hub: KiRomHub = hass.data[DOMAIN][entry.entry_id]
-    entities: list[KiRomSensor] = []
+    data = hass.data[DOMAIN][entry.entry_id]
+    hub: KiRomHub = data.hub
+    entities: list = []
     for area_id, area_name in hub.areas.items():
         for kind in KINDS:
             entities.append(KiRomSensor(hub, area_id, area_name, kind))
     for kind in KINDS:
         entities.append(KiRomSensor(hub, TOTALT_ID, TOTALT_NAVN, kind))
+    entities.extend(lys_sensorer(data))
     async_add_entities(entities)
 
 
@@ -103,3 +107,12 @@ class KiRomSensor(SensorEntity):
     def _handle_update(self) -> None:
         self._refresh()
         self.async_write_ha_state()
+
+
+def lys_sensorer(data) -> list:
+    """Sensorene som fulgte med fra ki_lys: én oversikt per rom, pluss jul."""
+    motor = data.lys
+    ut: list = [LysOversikt(motor, rom) for rom in motor.rom]
+    if motor.jul.aktiv:
+        ut.extend([Nedtelling(motor), Tent(motor)])
+    return ut

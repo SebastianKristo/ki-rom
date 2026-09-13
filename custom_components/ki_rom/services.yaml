@@ -1,0 +1,74 @@
+sett:
+  name: Sett lysscene
+  description: Setter en lysscene i ett rom, eller i alle rom.
+  fields:
+    scene:
+      name: Scene
+      required: true
+      example: komfort
+      selector:
+        select:
+          options: [maks, komfort, middag, tv, mindre, natt, av]
+    rom:
+      name: Rom
+      description: Områdets navn eller id. Utelates for alle rom.
+      example: stue
+      selector: { text: }
+
+les_rom:
+  name: Les rom på nytt
+  description: Leser rom og lys på nytt uten omstart.
+
+lagre_naa:
+  name: Lagre lyset som det står nå
+  description: Leser lysene slik de er akkurat nå, og lagrer dem som overstyring for scenen.
+  fields:
+    scene:
+      name: Scene
+      required: true
+      example: tv
+      selector: { text: }
+    rom:
+      name: Rom
+      description: Utelates for alle rom.
+      selector: { text: }
+
+sett_lys:
+  name: Overstyr ett lys
+  description: Setter lysstyrke, av/på eller fargetemperatur for ett lys i én scene.
+  fields:
+    scene: { name: Scene, required: true, selector: { text: } }
+    entity_id:
+      name: Lys
+      required: true
+      selector: { entity: { domain: light } }
+    lysstyrke:
+      name: Lysstyrke
+      description: 0 slår lyset av, -1 lar rollen bestemme.
+      selector: { number: { min: -1, max: 100, mode: slider } }
+    pa:
+      name: På
+      selector: { boolean: }
+    kelvin:
+      name: Fargetemperatur
+      selector: { number: { min: 2000, max: 6500, step: 100, mode: box } }
+
+legg_til_lys:
+  name: Legg lys til i scene
+  description: Tar et lys inn i scenen igjen, eller legger til et lys utenfra.
+  fields:
+    scene: { name: Scene, required: true, selector: { text: } }
+    entity_id: { name: Lys, required: true, selector: { entity: { domain: light } } }
+
+fjern_lys:
+  name: Fjern lys fra scene
+  description: Lar lyset stå urørt når scenen settes.
+  fields:
+    scene: { name: Scene, required: true, selector: { text: } }
+    entity_id: { name: Lys, required: true, selector: { entity: { domain: light } } }
+
+nullstill:
+  name: Nullstill scene
+  description: Fjerner overstyringene for scenen, slik at rollene gjelder igjen.
+  fields:
+    scene: { name: Scene, required: true, selector: { text: } }

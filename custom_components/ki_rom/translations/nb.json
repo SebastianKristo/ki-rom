@@ -3,12 +3,13 @@
     "step": {
       "user": {
         "title": "KI Rom",
-        "description": "Lager tellere per rom (lys, media, brytere, sensorer, effekt). Tomt romvalg = alle rom, automatisk.",
+        "description": "Lager tellere per rom (lys, media, brytere, sensorer, effekt) og lysscener per rom. Tomt romvalg = alle rom, automatisk. Resten justerer du under Innstillinger etterpå.",
         "data": {
-          "areas": "Rom (tomt = alle)",
-          "exclude": "Entiteter som skal ignoreres",
-          "include_category": "Ta med konfig-/diagnose-entiteter (f.eks. status-LED)",
-          "include_groups": "Ta med grupper (light.*-grupper o.l.)"
+          "rom": "Rom",
+          "ekskluder": "Lys som ikke skal være med",
+          "nattlys": "Lys som får stå på i nattmodus",
+          "scener": "Scener som skal lages",
+          "overgang": "Overgang"
         }
       }
     },
@@ -20,7 +21,106 @@
     "step": {
       "init": {
         "title": "KI Rom",
-        "description": "Tomt romvalg = alle rom, automatisk.",
+        "menu_options": {
+          "innstillinger": "Innstillinger",
+          "scener": "Egne scener",
+          "overstyr": "Overstyr lys i en scene",
+          "rom_scener": "Scener per rom",
+          "soner": "Soner – flere rom som ett",
+          "julelys": "Julelys",
+          "rom": "Rom og tellere"
+        },
+        "description": "Rom, lysscener, soner og julelys."
+      },
+      "innstillinger": {
+        "title": "Innstillinger",
+        "data": {
+          "rom": "Rom",
+          "ekskluder": "Lys som ikke skal være med",
+          "nattlys": "Lys som får stå på i nattmodus",
+          "scener": "Scener som skal lages",
+          "overgang": "Overgang"
+        }
+      },
+      "scener": {
+        "title": "Egne scener",
+        "data": {
+          "valg": "Hva vil du gjøre?"
+        }
+      },
+      "ny": {
+        "title": "Ny scene",
+        "description": "Sett lysstyrken per rolle. 0 % slår rollen av. Velger du en scene-entitet, brukes den i stedet.",
+        "data": {
+          "navn": "Navn",
+          "ikon": "Ikon",
+          "tak": "Taklys",
+          "lampe": "Lamper",
+          "stemning": "Stemningslys",
+          "arbeid": "Arbeidslys",
+          "nattlys": "Nattlys",
+          "kelvin": "Fargetemperatur",
+          "scene": "Bruk denne scenen i stedet",
+          "rom": "Bare i disse rommene (tomt = alle)"
+        }
+      },
+      "overstyr": {
+        "title": "Overstyr lys",
+        "data": {
+          "scene": "Hvilken scene?"
+        }
+      },
+      "lys": {
+        "title": "Overstyr lys i {scene}",
+        "description": "Sett lysstyrken per lys. −1 lar rollen bestemme, 0 slår lyset av. «Ikke med» lar lyset stå urørt, «I tillegg» tar med lys fra andre rom.",
+        "data": {
+          "utelat": "Ikke med i denne scenen",
+          "ekstra": "Lys i tillegg"
+        }
+      },
+      "rom_scener": {
+        "title": "Scener per rom",
+        "data": {
+          "rom": "Hvilket rom?"
+        }
+      },
+      "rom_valg": {
+        "title": "Scener i {rom}",
+        "description": "Huk av scenene dette rommet skal ha. Rommet kan ha færre eller flere enn de andre.",
+        "data": {
+          "scener": "Scener i dette rommet",
+          "som_standard": "Bruk standardutvalget i stedet"
+        }
+      },
+      "soner": {
+        "title": "Soner",
+        "data": {
+          "valg": "Hva vil du gjøre?"
+        }
+      },
+      "ny_sone": {
+        "title": "Ny sone",
+        "description": "En sone slår flere rom sammen til ett sett scener. Soverommet ditt med benk, seng og soverom blir da én knapperad.",
+        "data": {
+          "navn": "Navn på sonen",
+          "rom": "Rom som skal være med",
+          "skjul_enkeltrom": "Skjul de enkelte rommene"
+        }
+      },
+      "julelys": {
+        "title": "Julelys",
+        "description": "Velg julelysene – julestjerner, staker og utelys. De grupperes automatisk etter navnet. Datoene skrives som MM-DD.",
+        "data": {
+          "aktiv": "Slå på julelysdelen",
+          "lys": "Julelys",
+          "fra": "Sesongen starter",
+          "til": "Sesongen slutter",
+          "maal": "Teller ned til"
+        }
+      },
+      "rom": {
+        "title": "Rom",
+        "description": "Hvilke områder tellerne dekker. Tomt = alle rom, automatisk.",
         "data": {
           "areas": "Rom (tomt = alle)",
           "exclude": "Entiteter som skal ignoreres",
@@ -28,6 +128,9 @@
           "include_groups": "Ta med grupper (light.*-grupper o.l.)"
         }
       }
+    },
+    "abort": {
+      "ingen_rom": "Ingen rom med lys ennå. Velg rom under Innstillinger først."
     }
   }
 }
