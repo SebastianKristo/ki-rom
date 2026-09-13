@@ -3,8 +3,9 @@
 DOMAIN = "ki_rom"
 NAVN = "KI Rom"
 
-# Kortene ute i dashbordet kjenner lysscenene på attributtet `integrasjon: ki_lys`.
-# Entitetene beholder den markøren etter sammenslåingen, så ingen kort må endres.
+# Kortene ute i dashbordet kjenner lysscenene og julelysene på attributtet
+# `integrasjon: ki_lys`. Entitetene beholder den markøren etter sammenslåingen –
+# både lysscenene og jul-entitetene – så ingen kort må endres.
 LYS_MARKOR = "ki_lys"
 
 CONF_AREAS = "areas"

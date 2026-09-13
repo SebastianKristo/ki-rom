@@ -12,7 +12,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.event import async_track_state_change_event, async_track_time_change
 
-from .const import ATTR_INTEGRASJON, ATTR_TYPE, DOMAIN
+from .const import ATTR_INTEGRASJON, ATTR_TYPE, DOMAIN, LYS_MARKOR
 
 
 class JulEntitet(Entity):
@@ -62,7 +62,7 @@ class Nedtelling(JulEntitet, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        return {ATTR_INTEGRASJON: DOMAIN, ATTR_TYPE: "jul", **self.jul.oversikt()}
+        return {ATTR_INTEGRASJON: LYS_MARKOR, ATTR_TYPE: "jul", **self.jul.oversikt()}
 
 
 class Tent(JulEntitet, SensorEntity):
@@ -78,7 +78,7 @@ class Tent(JulEntitet, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        return {ATTR_INTEGRASJON: DOMAIN, ATTR_TYPE: "jul_tent",
+        return {ATTR_INTEGRASJON: LYS_MARKOR, ATTR_TYPE: "jul_tent",
                 "av_totalt": len(self.jul.lys), "lys": self.jul.lys}
 
 
@@ -98,7 +98,7 @@ class Sesong(JulEntitet, SwitchEntity):
     @property
     def extra_state_attributes(self) -> dict:
         n = self.jul.nedtelling()
-        return {ATTR_INTEGRASJON: DOMAIN, ATTR_TYPE: "jul_sesong",
+        return {ATTR_INTEGRASJON: LYS_MARKOR, ATTR_TYPE: "jul_sesong",
                 "sesong_i_gang": n["sesong_i_gang"], "tent": self.jul.tent()}
 
     async def async_turn_on(self, **_kwargs) -> None:
@@ -123,7 +123,7 @@ class ISesong(JulEntitet, BinarySensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        return {ATTR_INTEGRASJON: DOMAIN, ATTR_TYPE: "jul_i_sesong",
+        return {ATTR_INTEGRASJON: LYS_MARKOR, ATTR_TYPE: "jul_i_sesong",
                 "fra": self.jul.fra, "til": self.jul.til}
 
 
@@ -138,7 +138,7 @@ class AlleKnapp(JulEntitet, ButtonEntity):
 
     @property
     def extra_state_attributes(self) -> dict:
-        return {ATTR_INTEGRASJON: DOMAIN, ATTR_TYPE: "jul_knapp", "pa": self.pa}
+        return {ATTR_INTEGRASJON: LYS_MARKOR, ATTR_TYPE: "jul_knapp", "pa": self.pa}
 
     async def async_press(self) -> None:
         await self.jul.alle(self.pa)

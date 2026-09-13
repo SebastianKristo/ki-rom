@@ -1,3 +1,15 @@
+# KI Rom 2.1.1
+
+## Julelysene mistet kortmarkøren
+
+`jul_entiteter.py` satte `integrasjon: DOMAIN`, og etter sammenslåingen er DOMAIN `ki_rom`.
+`ki-jul-card` leter etter `ki_lys` og fant derfor ingenting — kortet sto med «Fant ingen
+julelys».
+
+Jul-entitetene bruker nå `LYS_MARKOR` som resten av lysdelen, altså `integrasjon: ki_lys`.
+Kortene trenger ingen endring. (ki-cards 3.22.0 godtar begge markørene, så kombinasjonen
+virker uansett hvilken vei du oppgraderer.)
+
 # KI Rom 2.1.0
 
 ## Velg bort rom i stedet for å velge dem
