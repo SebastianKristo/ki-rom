@@ -9,7 +9,8 @@
           "ekskluder": "Lys som ikke skal være med",
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
-          "overgang": "Overgang"
+          "overgang": "Overgang",
+          "ekskluder_rom": "Hopp over disse rommene (tellere og lysscener)"
         }
       }
     },
@@ -39,7 +40,8 @@
           "ekskluder": "Lys som ikke skal være med",
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
-          "overgang": "Overgang"
+          "overgang": "Overgang",
+          "ekskluder_rom": "Hopp over disse rommene (tellere og lysscener)"
         }
       },
       "scener": {
@@ -122,10 +124,11 @@
         "title": "Rom",
         "description": "Hvilke områder tellerne dekker. Tomt = alle rom, automatisk.",
         "data": {
-          "areas": "Rom (tomt = alle)",
+          "areas": "Bare disse rommene (tomt = alle unntatt de du hoppet over)",
           "exclude": "Entiteter som skal ignoreres",
           "include_category": "Ta med konfig-/diagnose-entiteter (f.eks. status-LED)",
-          "include_groups": "Ta med grupper (light.*-grupper o.l.)"
+          "include_groups": "Ta med grupper (light.*-grupper o.l.)",
+          "ekskluder_rom": "Hopp over disse rommene (tellere og lysscener)"
         }
       }
     },

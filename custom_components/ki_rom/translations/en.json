@@ -9,7 +9,8 @@
           "ekskluder": "Lys som ikke skal være med",
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
-          "overgang": "Overgang"
+          "overgang": "Overgang",
+          "ekskluder_rom": "Skip these areas (counters and light scenes)"
         }
       }
     },
@@ -39,7 +40,8 @@
           "ekskluder": "Lys som ikke skal være med",
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
-          "overgang": "Overgang"
+          "overgang": "Overgang",
+          "ekskluder_rom": "Skip these areas (counters and light scenes)"
         }
       },
       "scener": {
@@ -122,10 +124,11 @@
         "title": "Rom",
         "description": "Hvilke områder tellerne dekker. Tomt = alle rom, automatisk.",
         "data": {
-          "areas": "Areas (empty = all)",
+          "areas": "Only these areas (empty = all except the skipped ones)",
           "exclude": "Entities to ignore",
           "include_category": "Include config/diagnostic entities (e.g. status LEDs)",
-          "include_groups": "Include groups (light groups etc.)"
+          "include_groups": "Include groups (light groups etc.)",
+          "ekskluder_rom": "Skip these areas (counters and light scenes)"
         }
       }
     },

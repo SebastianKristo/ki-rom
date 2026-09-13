@@ -17,6 +17,7 @@ from .const import (
     CONF_AREAS,
     CONF_EGNE,
     CONF_EKSKLUDER,
+    CONF_EKSKLUDER_ROM,
     CONF_EXCLUDE,
     CONF_INCLUDE_CATEGORY,
     CONF_INCLUDE_GROUPS,
@@ -68,6 +69,8 @@ def _skjema(d: dict[str, Any]) -> vol.Schema:
     return vol.Schema({
         vol.Required(CONF_ROM, default=d.get(CONF_ROM, [])): selector.AreaSelector(
             selector.AreaSelectorConfig(multiple=True)),
+        vol.Optional(CONF_EKSKLUDER_ROM, default=d.get(CONF_EKSKLUDER_ROM, [])): selector.AreaSelector(
+            selector.AreaSelectorConfig(multiple=True)),
         vol.Optional(CONF_EKSKLUDER, default=d.get(CONF_EKSKLUDER, [])): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="light", multiple=True)),
         vol.Optional(CONF_NATTLYS, default=d.get(CONF_NATTLYS, [])): selector.EntitySelector(
@@ -82,6 +85,8 @@ def _skjema(d: dict[str, Any]) -> vol.Schema:
 
 
 ROM_SKJEMA = vol.Schema({
+    vol.Optional(CONF_EKSKLUDER_ROM): selector.AreaSelector(
+        selector.AreaSelectorConfig(multiple=True)),
     vol.Optional(CONF_AREAS): selector.AreaSelector(
         selector.AreaSelectorConfig(multiple=True)),
     vol.Optional(CONF_EXCLUDE): selector.EntitySelector(

@@ -22,6 +22,7 @@ from .const import (
     CONF_SONER,
     CONF_UTELAT,
     CONF_AREAS,
+    CONF_EKSKLUDER_ROM,
     CONF_EXCLUDE,
     DOMAIN,
     FOLG_ROLLEN,
@@ -129,6 +130,8 @@ class LysMotor:
             valgte = list(self.oppsett.get(CONF_AREAS) or [])
         if not valgte:
             valgte = [a.id for a in ar.async_get(self.hass).async_list_areas()]
+        hopp_over = set(self.oppsett.get(CONF_EKSKLUDER_ROM) or [])
+        valgte = [a for a in valgte if a not in hopp_over]
         self.rom = []
         if not valgte:
             return

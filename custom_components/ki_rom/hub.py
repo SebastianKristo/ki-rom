@@ -23,6 +23,7 @@ from homeassistant.helpers.event import async_track_state_change_event
 from .const import (
     ACTIVE_BINARY_CLASSES,
     CONF_AREAS,
+    CONF_EKSKLUDER_ROM,
     CONF_EXCLUDE,
     CONF_INCLUDE_CATEGORY,
     CONF_INCLUDE_GROUPS,
@@ -118,7 +119,10 @@ class KiRomHub:
         ent_reg = er.async_get(self.hass)
         dev_reg = dr.async_get(self.hass)
 
+        # Tomt romvalg = alle rom. Rommene under «hopp over» trekkes fra uansett,
+        # så det er nok å nevne de få du IKKE vil ha med.
         wanted = set(self.options.get(CONF_AREAS) or [])
+        skip = set(self.options.get(CONF_EKSKLUDER_ROM) or [])
         excluded = set(self.options.get(CONF_EXCLUDE) or [])
         include_category = bool(self.options.get(CONF_INCLUDE_CATEGORY, False))
         include_groups = bool(self.options.get(CONF_INCLUDE_GROUPS, False))
@@ -141,6 +145,8 @@ class KiRomHub:
         area_floors: dict[str, dict[str, Any] | None] = {}
         for area in area_reg.async_list_areas():
             if wanted and area.id not in wanted:
+                continue
+            if area.id in skip:
                 continue
             areas[area.id] = area.name
             icons[area.id] = area.icon

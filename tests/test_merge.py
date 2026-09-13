@@ -67,3 +67,28 @@ async def test_entitets_idene_er_uendret(hass, area_registry, entity_registry):
     assert oversikt is not None
     assert oversikt.attributes["integrasjon"] == "ki_lys"
     assert hass.states.get("sensor.stue_oversikt") is not None
+
+
+async def test_hopper_over_rommene_du_velger_bort(hass, area_registry, entity_registry):
+    """Tomt romvalg = alle rom, minus dem du har hoppet over."""
+    from custom_components.ki_rom.const import CONF_EKSKLUDER_ROM
+    stue = area_registry.async_create("Stue")
+    bod = area_registry.async_create("Bod")
+    for navn, omr in (("taklys", stue), ("bodlys", bod)):
+        o = entity_registry.async_get_or_create(
+            "light", "demo", navn + "-1", suggested_object_id=navn)
+        entity_registry.async_update_entity(o.entity_id, area_id=omr.id)
+        hass.states.async_set(o.entity_id, "on")
+
+    entry = MockConfigEntry(domain=DOMAIN, data={},
+                            options={CONF_EKSKLUDER_ROM: [bod.id]}, unique_id=DOMAIN)
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    # Stua er med, både som teller og som lysscene
+    assert hass.states.get("sensor.stue_oversikt") is not None
+    assert hass.states.get("button.stue_lys_komfort") is not None
+    # Boden er ute av begge deler
+    assert hass.states.get("sensor.bod_oversikt") is None
+    assert hass.states.get("button.bod_lys_komfort") is None

@@ -9,6 +9,7 @@ LYS_MARKOR = "ki_lys"
 
 CONF_AREAS = "areas"
 CONF_EXCLUDE = "exclude"
+CONF_EKSKLUDER_ROM = "ekskluder_rom"   # rom som holdes helt utenfor (tellere og lysscener)
 CONF_INCLUDE_CATEGORY = "include_category"
 CONF_INCLUDE_GROUPS = "include_groups"
 

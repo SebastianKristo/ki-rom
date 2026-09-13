@@ -1,3 +1,16 @@
+# KI Rom 2.1.0
+
+## Velg bort rom i stedet for å velge dem
+
+Nytt felt **«Hopp over disse rommene»** øverst i både «Rom og tellere» og lysinnstillingene.
+Tomt romvalg betyr fortsatt alle rom — nå alle rom *minus* dem du har hoppet over. Er det
+tre rom du ikke vil ha lys og sensorer for, nevner du de tre og slipper å vedlikeholde en
+liste over resten hver gang du legger til et nytt rom i Home Assistant.
+
+Feltet gjelder både romtellerne og lysscenene, så et rom du hopper over forsvinner helt.
+«Bare disse rommene» står igjen for deg som vil liste dem eksplisitt; settes begge, gjelder
+lista minus dem du har hoppet over.
+
 # KI Rom 2.0.0 — KI Lys er slått inn i KI Rom
 
 `ki_lys` finnes ikke lenger som egen integrasjon. Lysscenene, sonene og julelyset ligger
