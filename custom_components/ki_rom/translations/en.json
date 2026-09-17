@@ -10,7 +10,8 @@
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
           "overgang": "Overgang",
-          "ekskluder_rom": "Skip these areas (counters and light scenes)"
+          "ekskluder_rom": "Skip these areas (counters and light scenes)",
+          "bryterlys": "Lights on a switch or relay"
         }
       }
     },
@@ -41,7 +42,8 @@
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
           "overgang": "Overgang",
-          "ekskluder_rom": "Skip these areas (counters and light scenes)"
+          "ekskluder_rom": "Skip these areas (counters and light scenes)",
+          "bryterlys": "Lights on a switch or relay"
         }
       },
       "scener": {
@@ -63,21 +65,24 @@
           "nattlys": "Nattlys",
           "kelvin": "Fargetemperatur",
           "scene": "Bruk denne scenen i stedet",
-          "rom": "Bare i disse rommene (tomt = alle)"
+          "rom": "Bare i disse rommene (tomt = alle)",
+          "bryterlys": "Lights on a switch or relay"
         }
       },
       "overstyr": {
-        "title": "Overstyr lys",
+        "title": "Fine-tune a scene",
         "data": {
-          "scene": "Hvilken scene?"
-        }
+          "rom": "Room",
+          "scene": "Scene"
+        },
+        "description": "Pick the room and the scene to adjust. «All rooms» shows every light on one page."
       },
       "lys": {
-        "title": "Overstyr lys i {scene}",
-        "description": "Sett lysstyrken per lys. −1 lar rollen bestemme, 0 slår lyset av. «Ikke med» lar lyset stå urørt, «I tillegg» tar med lys fra andre rom.",
+        "title": "Brightness per light",
+        "description": "{scene} in {rom}. −1 lets the role decide, 0 turns the light off in this scene, 1–100 is brightness in percent.",
         "data": {
-          "utelat": "Ikke med i denne scenen",
-          "ekstra": "Lys i tillegg"
+          "utelat": "Lights not part of the scene",
+          "ekstra": "Lights from outside to include"
         }
       },
       "rom_scener": {

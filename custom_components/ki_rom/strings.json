@@ -10,7 +10,8 @@
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
           "overgang": "Overgang",
-          "ekskluder_rom": "Hopp over disse rommene (tellere og lysscener)"
+          "ekskluder_rom": "Hopp over disse rommene (tellere og lysscener)",
+          "bryterlys": "Lys som henger på en bryter (switch/relé)"
         }
       }
     },
@@ -41,7 +42,8 @@
           "nattlys": "Lys som får stå på i nattmodus",
           "scener": "Scener som skal lages",
           "overgang": "Overgang",
-          "ekskluder_rom": "Hopp over disse rommene (tellere og lysscener)"
+          "ekskluder_rom": "Hopp over disse rommene (tellere og lysscener)",
+          "bryterlys": "Lys som henger på en bryter (switch/relé)"
         }
       },
       "scener": {
@@ -63,21 +65,24 @@
           "nattlys": "Nattlys",
           "kelvin": "Fargetemperatur",
           "scene": "Bruk denne scenen i stedet",
-          "rom": "Bare i disse rommene (tomt = alle)"
+          "rom": "Bare i disse rommene (tomt = alle)",
+          "bryterlys": "Lys som henger på en bryter (switch/relé)"
         }
       },
       "overstyr": {
-        "title": "Overstyr lys",
+        "title": "Finjuster en scene",
         "data": {
-          "scene": "Hvilken scene?"
-        }
+          "rom": "Rom",
+          "scene": "Scene"
+        },
+        "description": "Velg rommet og scenen du vil justere. «Alle rom» viser alle lysene på én side."
       },
       "lys": {
-        "title": "Overstyr lys i {scene}",
-        "description": "Sett lysstyrken per lys. −1 lar rollen bestemme, 0 slår lyset av. «Ikke med» lar lyset stå urørt, «I tillegg» tar med lys fra andre rom.",
+        "title": "Lysstyrke per lys",
+        "description": "{scene} i {rom}. −1 lar rollen bestemme, 0 slår lyset av i denne scenen, og 1–100 er lysstyrke i prosent.",
         "data": {
-          "utelat": "Ikke med i denne scenen",
-          "ekstra": "Lys i tillegg"
+          "utelat": "Lys som ikke er med i scenen",
+          "ekstra": "Lys utenfra som skal med"
         }
       },
       "rom_scener": {

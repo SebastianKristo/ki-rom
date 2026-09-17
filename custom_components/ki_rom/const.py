@@ -119,6 +119,10 @@ CONF_SONER = "soner"              # [{navn, rom: [area_id], skjul_enkeltrom}] �
 CONF_EGNE = "egne"                # egne scener lagt til manuelt
 CONF_OVERGANG = "overgang"        # sekunder på dimmingen
 CONF_NATTLYS = "nattlys"          # lys som får stå på i nattmodus
+# Lys som henger på en bryter eller et relé. De er `switch`-entiteter og finnes ikke ved
+# å spørre etter light-domenet, så de må listes. Vi kan ikke gjette hvilke brytere som er
+# lys — en av dem kan være en varmekabel.
+CONF_BRYTERLYS = "bryterlys"
 CONF_OVERSTYR = "overstyr"        # {scene: {entity_id: {paa, lysstyrke, kelvin}}}
 CONF_UTELAT = "utelat"            # {scene: [entity_id]} – lys som ikke er med i scenen
 CONF_EKSTRA_LYS = "ekstra_lys"    # {scene: [entity_id]} – lys utenfra som skal med

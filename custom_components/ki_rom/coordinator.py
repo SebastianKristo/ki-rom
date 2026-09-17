@@ -13,6 +13,7 @@ from .const import (
     CONF_EGNE,
     CONF_EKSKLUDER,
     CONF_EKSTRA_LYS,
+    CONF_BRYTERLYS,
     CONF_NATTLYS,
     CONF_OVERGANG,
     CONF_OVERSTYR,
@@ -138,12 +139,34 @@ class LysMotor:
 
         # ett oppslag over alle lys, så slipper vi å spørre registeret per rom
         per_omraade: dict[str, list[str]] = {}
-        for st in self.hass.states.async_all("light"):
-            if st.entity_id in ekskl:
-                continue
-            omr = self._omraade_for(st.entity_id)
+        uten_omraade: list[str] = []
+
+        def _legg_til(entity_id: str) -> None:
+            if entity_id in ekskl:
+                return
+            omr = self._omraade_for(entity_id)
             if omr:
-                per_omraade.setdefault(omr, []).append(st.entity_id)
+                per_omraade.setdefault(omr, []).append(entity_id)
+            else:
+                uten_omraade.append(entity_id)
+
+        for st in self.hass.states.async_all("light"):
+            _legg_til(st.entity_id)
+
+        # Lys som henger på en bryter eller et relé er `switch`-entiteter, og ble aldri
+        # funnet her. De må listes i oppsettet, for vi kan ikke gjette hvilke brytere
+        # som er lys og hvilke som er varmekabler.
+        for entity_id in (self.oppsett.get(CONF_BRYTERLYS) or []):
+            if self.hass.states.get(entity_id):
+                _legg_til(entity_id)
+            else:
+                _LOGGER.warning("KI Lys: «%s» finnes ikke, og kan ikke styres.", entity_id)
+
+        if uten_omraade:
+            _LOGGER.warning(
+                "KI Lys: disse lysene har ingen område i Home Assistant og blir derfor "
+                "ikke styrt — heller ikke slått av i nattmodus: %s",
+                ", ".join(sorted(uten_omraade)))
 
         # sonene først, så vi vet hvilke enkeltrom som eventuelt skal skjules
         soner = self.oppsett.get(CONF_SONER) or []
@@ -261,17 +284,42 @@ class LysMotor:
         for lys in self.lys_i_scene(rom, egen.get("id", "")):
             await self._sett_lys(lys, self._innstilling(lys, egen.get("id", ""), oppskrift))
 
+    def _stotter_overgang(self, entity_id: str) -> bool:
+        """Bare lys som melder TRANSITION (bit 32) tåler «transition» i kallet.
+
+        Sender vi det til et lys som ikke støtter det, avviser Home Assistant hele
+        tjenestekallet — og da blir lyset stående på. Det rammer typisk én enkelt lampe
+        i et ellers fungerende oppsett, som er vondt å feilsøke: alle de andre slukker.
+        """
+        st = self.hass.states.get(entity_id)
+        if not st:
+            return False
+        try:
+            return bool(int(st.attributes.get("supported_features") or 0) & 32)
+        except (TypeError, ValueError):
+            return False
+
     async def _sett_lys(self, entity_id: str, innstilling: tuple[int, int] | None) -> None:
+        domene = entity_id.split(".")[0]
         if innstilling is None:
-            await self.hass.services.async_call(
-                "light", "turn_off", {"entity_id": entity_id, "transition": self.overgang}, blocking=False)
+            # switch, input_boolean og lignende har ikke «transition», og skal kalles
+            # i sitt eget domene — ikke i light.
+            data: dict[str, Any] = {"entity_id": entity_id}
+            if domene == "light" and self.overgang and self._stotter_overgang(entity_id):
+                data["transition"] = self.overgang
+            await self.hass.services.async_call(domene, "turn_off", data, blocking=False)
+            return
+        if domene != "light":
+            # Et lys på en bryter kan bare av og på — lysstyrke og farge finnes ikke
+            await self.hass.services.async_call(domene, "turn_on", {"entity_id": entity_id}, blocking=False)
             return
         prosent, kelvin = innstilling
         data: dict[str, Any] = {
             "entity_id": entity_id,
             "brightness_pct": max(1, min(100, int(prosent))),
-            "transition": self.overgang,
         }
+        if self.overgang and self._stotter_overgang(entity_id):
+            data["transition"] = self.overgang
         st = self.hass.states.get(entity_id)
         moduser = (st.attributes.get("supported_color_modes") or []) if st else []
         if "color_temp" in moduser:

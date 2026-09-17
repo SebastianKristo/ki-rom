@@ -22,6 +22,7 @@ from .const import (
     CONF_INCLUDE_CATEGORY,
     CONF_INCLUDE_GROUPS,
     CONF_EKSTRA_LYS,
+    CONF_BRYTERLYS,
     CONF_NATTLYS,
     CONF_OVERGANG,
     CONF_OVERSTYR,
@@ -73,6 +74,8 @@ def _skjema(d: dict[str, Any]) -> vol.Schema:
             selector.AreaSelectorConfig(multiple=True)),
         vol.Optional(CONF_EKSKLUDER, default=d.get(CONF_EKSKLUDER, [])): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="light", multiple=True)),
+        vol.Optional(CONF_BRYTERLYS, default=d.get(CONF_BRYTERLYS, [])): selector.EntitySelector(
+            selector.EntitySelectorConfig(domain=["switch", "input_boolean"], multiple=True)),
         vol.Optional(CONF_NATTLYS, default=d.get(CONF_NATTLYS, [])): selector.EntitySelector(
             selector.EntitySelectorConfig(domain="light", multiple=True)),
         vol.Optional(CONF_SCENER, default=d.get(CONF_SCENER, STD_SCENER)): selector.SelectSelector(
@@ -261,15 +264,28 @@ class KiRomOptionsFlow(OptionsFlow):
 
     # --------------------------------------------------- overstyring per lys
     async def async_step_overstyr(self, user_input: dict[str, Any] | None = None):
-        """Velg scenen du vil justere."""
+        """Velg rommet, og deretter scenen du vil justere.
+
+        Skjemaet listet før hvert lys i hele huset for den valgte scenen. Med tolv rom
+        blir det en side med tredve glidebrytere, og det er umulig å finne stua i.
+        Nå velges rommet først, og «Alle rom» finnes for den som vil se alt.
+        """
         if user_input is not None:
             self._scene = user_input["scene"]
+            self._overstyr_rom = user_input.get("rom") or "alle"
             return await self.async_step_lys()
         d = {**self.entry.data, **self.entry.options}
         valgte = d.get(CONF_SCENER) or list(SCENER)
         alternativer = [{"value": k, "label": SCENER[k]["navn"]} for k in SCENER if k in valgte]
         alternativer += [{"value": e["id"], "label": e.get("navn") or e["id"]} for e in self._egne]
+        motor = next(iter(self.hass.data.get(DOMAIN, {}).values()), None)
+        rom_valg = [{"value": "alle", "label": "Alle rom"}]
+        rom_valg += [{"value": r.area_id, "label": f"{r.navn} ({len(r.lys)} lys)"}
+                     for r in (motor.rom if motor else []) if r.lys]
         return self.async_show_form(step_id="overstyr", data_schema=vol.Schema({
+            vol.Required("rom", default=getattr(self, "_overstyr_rom", "alle")):
+                selector.SelectSelector(
+                    selector.SelectSelectorConfig(options=rom_valg, mode="dropdown")),
             vol.Required("scene"): selector.SelectSelector(
                 selector.SelectSelectorConfig(options=alternativer, mode="list")),
         }))
@@ -278,18 +294,31 @@ class KiRomOptionsFlow(OptionsFlow):
         """Sett lysstyrke per lys, og velg hvilke lys som er med."""
         motor = next(iter(self.hass.data.get(DOMAIN, {}).values()), None)
         scene = self._scene
+        valgt_rom = getattr(self, "_overstyr_rom", "alle")
         d = {**self.entry.data, **self.entry.options}
         i_rom: list[str] = []
         for rom in (motor.rom if motor else []):
             i_rom.extend(rom.lys)
         utelat_na = (d.get(CONF_UTELAT) or {}).get(scene) or []
         ekstra_na = (d.get(CONF_EKSTRA_LYS) or {}).get(scene) or []
-        alle_lys = sorted(set(i_rom) | set(ekstra_na))
         overstyr = dict((d.get(CONF_OVERSTYR) or {}).get(scene) or {})
+
+        # Lysene som vises. Har du valgt ett rom, er det bare rommets lys — pluss
+        # ekstralys du selv har lagt til der.
+        if valgt_rom == "alle":
+            alle_lys = sorted(set(i_rom) | set(ekstra_na))
+            rom_navn = "alle rom"
+        else:
+            rom = next((r for r in (motor.rom if motor else []) if r.area_id == valgt_rom), None)
+            alle_lys = sorted(rom.lys if rom else [])
+            rom_navn = rom.navn if rom else valgt_rom
 
         if user_input is not None:
             nytt = dict(d.get(CONF_OVERSTYR) or {})
-            rad: dict[str, Any] = {}
+            # Behold overstyringene for lys som ikke er på skjermen nå. Uten dette ville
+            # det å redigere stua slettet alt du hadde satt i de andre rommene.
+            rad: dict[str, Any] = {k: v for k, v in (nytt.get(scene) or {}).items()
+                                   if k not in alle_lys}
             for lys in alle_lys:
                 verdi = user_input.get(_felt(lys))
                 if verdi is None or int(verdi) == FOLG_ROLLEN:
@@ -298,8 +327,14 @@ class KiRomOptionsFlow(OptionsFlow):
             nytt[scene] = rad
             utelat = {k: list(v) for k, v in (d.get(CONF_UTELAT) or {}).items()}
             ekstra = {k: list(v) for k, v in (d.get(CONF_EKSTRA_LYS) or {}).items()}
-            utelat[scene] = list(user_input.get("utelat") or [])
-            ekstra[scene] = [x for x in (user_input.get("ekstra") or []) if x not in i_rom]
+            if valgt_rom == "alle":
+                utelat[scene] = list(user_input.get("utelat") or [])
+                ekstra[scene] = [x for x in (user_input.get("ekstra") or []) if x not in i_rom]
+            else:
+                # Ett rom av gangen: bare rommets egne lys fjernes fra eller legges til
+                # i lista, resten står urørt.
+                andre_utelatt = [x for x in utelat_na if x not in alle_lys]
+                utelat[scene] = andre_utelatt + list(user_input.get("utelat") or [])
             return self.async_create_entry(title="", data={
                 **{k: v for k, v in d.items() if k not in (CONF_OVERSTYR, CONF_UTELAT, CONF_EKSTRA_LYS)},
                 CONF_OVERSTYR: nytt, CONF_UTELAT: utelat, CONF_EKSTRA_LYS: ekstra, CONF_EGNE: self._egne,
@@ -312,13 +347,28 @@ class KiRomOptionsFlow(OptionsFlow):
             felt[vol.Optional(_felt(lys), default=std, description={"suggested_value": std})] = \
                 selector.NumberSelector(selector.NumberSelectorConfig(
                     min=FOLG_ROLLEN, max=100, step=1, mode="slider"))
-        felt[vol.Optional("utelat", default=utelat_na)] = selector.EntitySelector(
-            selector.EntitySelectorConfig(domain="light", multiple=True))
-        felt[vol.Optional("ekstra", default=ekstra_na)] = selector.EntitySelector(
-            selector.EntitySelectorConfig(domain="light", multiple=True))
+        if valgt_rom == "alle":
+            felt[vol.Optional("utelat", default=utelat_na)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="light", multiple=True))
+            felt[vol.Optional("ekstra", default=ekstra_na)] = selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="light", multiple=True))
+        else:
+            # Bare rommets lys kan utelates herfra, og ekstralys utenfra hører ikke til
+            # et enkelt rom — de settes under «Alle rom».
+            felt[vol.Optional("utelat", default=[x for x in utelat_na if x in alle_lys])] = \
+                selector.SelectSelector(selector.SelectSelectorConfig(
+                    options=[{"value": x, "label": self._lysnavn(x)} for x in alle_lys],
+                    multiple=True, mode="list"))
         return self.async_show_form(
             step_id="lys", data_schema=vol.Schema(felt),
-            description_placeholders={"scene": SCENER.get(scene, {}).get("navn", scene)})
+            description_placeholders={
+                "scene": SCENER.get(scene, {}).get("navn", scene),
+                "rom": rom_navn,
+            })
+
+    def _lysnavn(self, entity_id: str) -> str:
+        st = self.hass.states.get(entity_id)
+        return (st.attributes.get("friendly_name") if st else None) or entity_id
 
     async def async_step_innstillinger(self, user_input: dict[str, Any] | None = None):
         if user_input is not None:
