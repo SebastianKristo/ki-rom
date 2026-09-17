@@ -18,8 +18,10 @@ def _flyt(overstyr, utelat=None, rom_valgt="stue"):
                            lys=["light.stue_tak", "light.stue_gulv"])
     kjokken = SimpleNamespace(area_id="kjokken", navn="Kjøkken",
                               lys=["light.kjokken_benk"])
+    # Slik oppføringen faktisk ser ut: KiRomData med .hub og .lys
     f.hass = SimpleNamespace(
-        data={"ki_rom": {"1": SimpleNamespace(rom=[stue, kjokken])}},
+        data={"ki_rom": {"1": SimpleNamespace(hub=object(),
+                                             lys=SimpleNamespace(rom=[stue, kjokken]))}},
         states=SimpleNamespace(get=lambda e: None))
     f.entry = SimpleNamespace(
         data={}, options={CONF_OVERSTYR: overstyr, CONF_UTELAT: utelat or {},
@@ -87,3 +89,33 @@ def test_alle_rom_ser_alle_lysene():
     data = asyncio.get_event_loop().run_until_complete(f.async_step_lys(svar))
     rad = data[CONF_OVERSTYR]["kveld"]
     assert set(rad) == {"light.stue_tak", "light.kjokken_benk"}
+
+
+def test_lysmotor_pakkes_ut_av_kiromdata():
+    """hass.data-oppføringen er en KiRomData med .hub og .lys, ikke motoren selv.
+
+    Stegene plukket den rett ut og kalte .rom på den — det ga AttributeError og en tom
+    «Feil»-dialog i HA. Både «Scener per rom» og «Overstyr lys i en scene» var døde.
+    """
+    f = object.__new__(KiRomOptionsFlow)
+    stue = SimpleNamespace(area_id="stue", navn="Stue", lys=["light.stue_tak"])
+    motor = SimpleNamespace(rom=[stue])
+    pakket = SimpleNamespace(hub=object(), lys=motor)      # slik det faktisk ligger
+    f.hass = SimpleNamespace(data={"ki_rom": {"1": pakket}})
+    assert f._lysmotor() is motor
+    assert [r.area_id for r in f._rommene()] == ["stue"]
+
+
+def test_lysmotor_tar_ogsa_motoren_direkte():
+    """Skulle oppføringen en gang bli motoren selv, skal det fortsatt virke."""
+    f = object.__new__(KiRomOptionsFlow)
+    motor = SimpleNamespace(rom=[SimpleNamespace(area_id="bad", navn="Bad", lys=[])])
+    f.hass = SimpleNamespace(data={"ki_rom": {"1": motor}})
+    assert f._lysmotor() is motor
+
+
+def test_ingen_oppforing_gir_tom_liste_ikke_krasj():
+    f = object.__new__(KiRomOptionsFlow)
+    f.hass = SimpleNamespace(data={})
+    assert f._lysmotor() is None
+    assert f._rommene() == []

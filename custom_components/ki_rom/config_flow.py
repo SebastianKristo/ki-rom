@@ -223,8 +223,7 @@ class KiRomOptionsFlow(OptionsFlow):
         if user_input is not None:
             self._rom = user_input["rom"]
             return await self.async_step_rom_valg()
-        motor = next(iter(self.hass.data.get(DOMAIN, {}).values()), None)
-        alternativer = [{"value": r.area_id, "label": r.navn} for r in (motor.rom if motor else [])]
+        alternativer = [{"value": r.area_id, "label": r.navn} for r in self._rommene()]
         if not alternativer:
             return self.async_abort(reason="ingen_rom")
         return self.async_show_form(step_id="rom_scener", data_schema=vol.Schema({
@@ -236,8 +235,7 @@ class KiRomOptionsFlow(OptionsFlow):
         """Huk av scenene dette rommet skal ha."""
         d = {**self.entry.data, **self.entry.options}
         per_rom = {k: list(v) for k, v in (d.get(CONF_SCENER_ROM) or {}).items()}
-        motor = next(iter(self.hass.data.get(DOMAIN, {}).values()), None)
-        rom = next((r for r in (motor.rom if motor else []) if r.area_id == self._rom), None)
+        rom = next((r for r in self._rommene() if r.area_id == self._rom), None)
 
         if user_input is not None:
             valgt = list(user_input.get("scener") or [])
@@ -278,10 +276,9 @@ class KiRomOptionsFlow(OptionsFlow):
         valgte = d.get(CONF_SCENER) or list(SCENER)
         alternativer = [{"value": k, "label": SCENER[k]["navn"]} for k in SCENER if k in valgte]
         alternativer += [{"value": e["id"], "label": e.get("navn") or e["id"]} for e in self._egne]
-        motor = next(iter(self.hass.data.get(DOMAIN, {}).values()), None)
         rom_valg = [{"value": "alle", "label": "Alle rom"}]
         rom_valg += [{"value": r.area_id, "label": f"{r.navn} ({len(r.lys)} lys)"}
-                     for r in (motor.rom if motor else []) if r.lys]
+                     for r in self._rommene() if r.lys]
         return self.async_show_form(step_id="overstyr", data_schema=vol.Schema({
             vol.Required("rom", default=getattr(self, "_overstyr_rom", "alle")):
                 selector.SelectSelector(
@@ -292,12 +289,12 @@ class KiRomOptionsFlow(OptionsFlow):
 
     async def async_step_lys(self, user_input: dict[str, Any] | None = None):
         """Sett lysstyrke per lys, og velg hvilke lys som er med."""
-        motor = next(iter(self.hass.data.get(DOMAIN, {}).values()), None)
         scene = self._scene
         valgt_rom = getattr(self, "_overstyr_rom", "alle")
         d = {**self.entry.data, **self.entry.options}
+        rommene = self._rommene()
         i_rom: list[str] = []
-        for rom in (motor.rom if motor else []):
+        for rom in rommene:
             i_rom.extend(rom.lys)
         utelat_na = (d.get(CONF_UTELAT) or {}).get(scene) or []
         ekstra_na = (d.get(CONF_EKSTRA_LYS) or {}).get(scene) or []
@@ -309,7 +306,7 @@ class KiRomOptionsFlow(OptionsFlow):
             alle_lys = sorted(set(i_rom) | set(ekstra_na))
             rom_navn = "alle rom"
         else:
-            rom = next((r for r in (motor.rom if motor else []) if r.area_id == valgt_rom), None)
+            rom = next((r for r in rommene if r.area_id == valgt_rom), None)
             alle_lys = sorted(rom.lys if rom else [])
             rom_navn = rom.navn if rom else valgt_rom
 
@@ -365,6 +362,24 @@ class KiRomOptionsFlow(OptionsFlow):
                 "scene": SCENER.get(scene, {}).get("navn", scene),
                 "rom": rom_navn,
             })
+
+    def _lysmotor(self):
+        """Lysmotoren fra hass.data.
+
+        Oppføringen er en `KiRomData` med `.hub` og `.lys` — ikke motoren selv. Stegene
+        her plukket den rett ut og kalte `.rom` på den, som ga AttributeError og en tom
+        «Feil»-dialog i grensesnittet. Både «Scener per rom» og «Overstyr lys i en
+        scene» har vært ødelagt av dette.
+        """
+        for data in (self.hass.data.get(DOMAIN) or {}).values():
+            motor = getattr(data, "lys", data)
+            if hasattr(motor, "rom"):
+                return motor
+        return None
+
+    def _rommene(self) -> list:
+        motor = self._lysmotor()
+        return list(motor.rom) if motor else []
 
     def _lysnavn(self, entity_id: str) -> str:
         st = self.hass.states.get(entity_id)

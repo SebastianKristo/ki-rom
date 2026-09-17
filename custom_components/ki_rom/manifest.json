@@ -1,7 +1,7 @@
 {
   "domain": "ki_rom",
   "name": "KI Rom",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "codeowners": [
     "@SebastianKristo"
   ],
